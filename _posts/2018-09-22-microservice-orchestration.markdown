@@ -502,7 +502,7 @@ CONTAINER ID        IMAGE                 COMMAND             CREATED           
 d69c0150a754        linkextractor:step3   "./main.py"         9 seconds ago       Up 8 seconds0.0.0.0:5000->5000/tcp   linkextractor
 ```
 
-We can now make an HTTP request in the form `/api/<url>` to talk to this server and fetch the response containing extracted links:
+We can now make an HTTP request in the form `/api/<url>` to talk to this server and fetch the response containing the extracted links:
 
 ```.term1
 curl -i http://localhost:5000/api/http://example.com/
@@ -518,9 +518,9 @@ Date: Sun, 23 Sep 2018 20:52:56 GMT
 [{"href":"http://www.iana.org/domains/example","text":"More information..."}]
 ```
 
-Now, we have the API service running that accepts requests in the form `/api/<url>` and responds with a JSON containing hyperlinks and anchor texts of all the links present in the web page at give `<url>`.
+Now we have the API service running which accepts requests in the form of `/api/<url>` and responds with a JSON containing hyperlinks and anchor texts of all the links present in the web page at the given `<url>`.
 
-Since the container is running in detached mode, so we can't see what's happening inside, but we can see logs using the name `linkextractor` we assigned to our container:
+Since the container is running in detached mode, we can't see what's happening inside, but we can see logs using the name `linkextractor` we assigned to our container:
 
 ```.term1
 docker container logs linkextractor
@@ -543,7 +543,7 @@ Now we can kill and remove this container:
 docker container rm -f linkextractor
 ```
 
-In this step we have successfully ran an API service listening on port `5000`.
+In this step, we successfully ran an API service listening on port `5000`.
 This is great, but APIs and JSON responses are for machines, so in the next step we will run a web service with a human-friendly web interface in addition to this API service.
 
 
@@ -571,21 +571,21 @@ tree
 2 directories, 7 files
 ```
 
-In this step the following changes have been made since the last step:
+In this step, the following changes have been made:
 
-* The link extractor JSON API service (written in Python) is moved in a separate `./api` folder that has the exact same code as in the previous step
-* A web front-end application is written in PHP under `./www` folder that talks to the JSON API
+* The link extractor JSON API service (written in Python) is moved to a separate `./api` folder that has the exact same code as in the previous step
+* A front-end web application is written in PHP under the `./www` folder that talks to the JSON API
 * The PHP application is mounted inside the official `php:7-apache` Docker image for easier modification during the development
 * The web application is made accessible at `http://<hostname>[:<prt>]/?url=<url-encoded-url>`
 * An environment variable `API_ENDPOINT` is used inside the PHP application to configure it to talk to the JSON API server
 * A `docker-compose.yml` file is written to build various components and glue them together
 
-In this step we are planning to run two separate containers, one for the API and the other for the web interface.
+In this step, we are planning to run two separate containers, one for the API and the other for the web interface.
 The latter needs a way to talk to the API server.
-For the two containers to be able to talk to each other, we can either map their ports on the host machine and use that for request routing or we can place the containers in a single private network and access directly.
-Docker has an excellent support of networking and provides helpful commands to deal with networks.
-Additionally, in a Docker network containers identify themselves using their names as hostnames to avoid hunting for their IP addresses in the private network.
-However, we are not going to do any of this manually, instead we will be using Docker Compose to automate many of these tasks.
+For the two containers to be able to talk to each other, we can either map their ports on the host machine and use that for request routing or we can place the containers in a single private network and access them directly.
+Docker has excellent support for networking and provides helpful commands to deal with networks.
+Additionally in Docker, network containers identify themselves using their names as hostnames to avoid hunting for their IP addresses in the private network.
+We are not going to do any of this manually however, and will instead be using Docker Compose to automate many of these tasks.
 
 So let's look at the `docker-compose.yml` file we have:
 
@@ -616,7 +616,7 @@ This is a simple YAML file that describes the two services `api` and `web`.
 The `api` service will use the `linkextractor-api:step4-python` image that is not built yet, but will be built on-demand using the `Dockerfile` from the `./api` directory.
 This service will be exposed on the port `5000` of the host.
 
-The second service named `web` will use official `php:7-apache` image directly from the DockerHub, that's why we do not have a `Dockerfile` for it.
+The second service named `web` will use the official `php:7-apache` image directly from DockerHub; that's why we do not have a `Dockerfile` for it.
 The service will be exposed on the default HTTP port (i.e., `80`).
 We will supply an environment variable named `API_ENDPOINT` with the value `http://api:5000/api/` to tell the PHP script where to connect to for the API access.
 Notice that we are not using an IP address here, instead, `api:5000` is being used because we will have a dynamic hostname entry in the private network for the API service matching its service name.
